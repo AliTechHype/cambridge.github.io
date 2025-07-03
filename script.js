@@ -785,7 +785,7 @@ function showWelcomeMessage() {
     <div style="margin-bottom: 1.5rem;">
       <i class="fas fa-truck" style="font-size: 4rem; margin-bottom: 1rem;"></i>
     </div>
-    <h2 style="margin-bottom: 1rem; font-size: 1.8rem;">Welcome to MediDist!</h2>
+    <h2 style="margin-bottom: 1rem; font-size: 1.8rem;">Welcome to Medi-Care!</h2>
     <p style="margin-bottom: 1.5rem; font-size: 1.1rem; opacity: 0.9;">
       Your complete distribution management solution
     </p>
