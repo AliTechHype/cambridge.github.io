@@ -657,6 +657,24 @@ form {
     padding: 1rem;
   }
 
+  .nav-right {
+    gap: 0.5rem !important;
+  }
+
+  .logout-btn {
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 0.5rem 0.5rem;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.7rem;
+    display: flex;
+    align-items: center;
+    gap: 0.2rem;
+    transition: background-color 0.3s;
+  }
+
   .logo span {
     display: none;
   }
