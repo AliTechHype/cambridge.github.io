@@ -9,10 +9,16 @@ let editingStockId = null;
 
 // Initialize the application
 document.addEventListener("DOMContentLoaded", function () {
+  // Check authentication first
+  if (typeof authManager !== "undefined") {
+    authManager.checkAuth();
+  }
+
   loadData();
   setCurrentMonth();
   updateDisplay();
   setupEventListeners();
+  setupAuthUI();
 });
 
 // Load data from localStorage
@@ -843,6 +849,154 @@ function clearAllData() {
 
 // These functions are now handled by the data manager utility
 // The exportData, importData, and loadSampleData functions are defined in utils/data-manager.js
+
+// Setup authentication UI
+function setupAuthUI() {
+  // Add logout button to header if it doesn't exist
+  const header = document.querySelector(".header");
+  if (header && !document.getElementById("logoutBtn")) {
+    const userInfo = authManager.getCurrentUser();
+    if (userInfo) {
+      const userSection = document.createElement("div");
+      userSection.style.cssText = `
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-left: auto;
+      `;
+
+      const userName = document.createElement("span");
+      userName.textContent = `Welcome, ${userInfo.name}`;
+      userName.style.cssText = `
+        color: #333;
+        font-weight: 500;
+      `;
+
+      const logoutBtn = document.createElement("button");
+      logoutBtn.id = "logoutBtn";
+      logoutBtn.innerHTML = '<i class="fas fa-sign-out-alt"></i> Logout';
+      logoutBtn.style.cssText = `
+        background: #dc3545;
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        transition: background-color 0.3s;
+      `;
+
+      logoutBtn.addEventListener("click", function () {
+        if (confirm("Are you sure you want to logout?")) {
+          authManager.logout();
+          window.location.href = "login.html";
+        }
+      });
+
+      userSection.appendChild(userName);
+      userSection.appendChild(logoutBtn);
+      header.appendChild(userSection);
+    }
+  }
+
+  // Setup session timeout warning
+  setupSessionTimeoutWarning();
+}
+
+// Setup session timeout warning
+function setupSessionTimeoutWarning() {
+  const session = authManager.getCurrentSession();
+  if (!session) return;
+
+  const sessionExpiry = new Date(session.expiresAt);
+  const now = new Date();
+  const timeUntilExpiry = sessionExpiry - now;
+
+  // Show warning 1 hour before expiry
+  const warningTime = 60 * 60 * 1000; // 1 hour in milliseconds
+
+  if (timeUntilExpiry > warningTime) {
+    const warningDelay = timeUntilExpiry - warningTime;
+    setTimeout(() => {
+      showSessionWarning();
+    }, warningDelay);
+  } else if (timeUntilExpiry > 0) {
+    // Session expires soon, show warning immediately
+    showSessionWarning();
+  }
+}
+
+// Show session timeout warning
+function showSessionWarning() {
+  const warningDiv = document.createElement("div");
+  warningDiv.id = "sessionWarning";
+  warningDiv.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #f59e0b;
+    color: white;
+    padding: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 1000;
+    max-width: 300px;
+    font-size: 0.9rem;
+  `;
+
+  warningDiv.innerHTML = `
+    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+      <i class="fas fa-exclamation-triangle"></i>
+      <strong>Session Expiring Soon</strong>
+    </div>
+    <p style="margin: 0 0 0.5rem 0;">Your session will expire in 1 hour. Please save your work.</p>
+    <div style="display: flex; gap: 0.5rem;">
+      <button onclick="extendSession()" style="background: #059669; color: white; border: none; padding: 0.25rem 0.5rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">
+        Extend Session
+      </button>
+      <button onclick="dismissWarning()" style="background: transparent; color: white; border: 1px solid white; padding: 0.25rem 0.5rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">
+        Dismiss
+      </button>
+    </div>
+  `;
+
+  document.body.appendChild(warningDiv);
+}
+
+// Extend session
+function extendSession() {
+  const session = authManager.getCurrentSession();
+  if (session) {
+    // Extend session by 7 more days
+    session.expiresAt = new Date(
+      Date.now() + 7 * 24 * 60 * 60 * 1000
+    ).toISOString();
+    authManager.saveAuthData();
+
+    // Remove warning
+    dismissWarning();
+
+    // Show success message
+    alert("Session extended successfully!");
+  }
+}
+
+// Dismiss warning
+function dismissWarning() {
+  const warning = document.getElementById("sessionWarning");
+  if (warning) {
+    warning.remove();
+  }
+}
+
+// Logout from stock modal
+function logoutFromStockModal() {
+  if (confirm("Are you sure you want to logout?")) {
+    authManager.logout();
+    closeStockModal();
+    window.location.href = "login.html";
+  }
+}
 
 // Force fresh start - run this in browser console if you see old data
 function forceFreshStart() {

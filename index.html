@@ -19,10 +19,20 @@
           <span>Medi-Care</span>
         </div>
       </div>
-      <div class="nav-right">
+      <div
+        class="nav-right"
+        style="display: flex; align-items: center; gap: 1rem"
+      >
         <button class="stock-btn" onclick="openStockModal()">
           <i class="fas fa-boxes"></i>
           Stock Management
+        </button>
+        <button
+          class="logout-btn"
+          onclick="logoutFromStockModal()"
+          title="Logout"
+        >
+          <i class="fas fa-sign-out-alt"></i> Logout
         </button>
       </div>
     </nav>
@@ -170,7 +180,9 @@
       <div class="modal-content large">
         <div class="modal-header">
           <h2>Stock Management</h2>
-          <span class="close" onclick="closeStockModal()">&times;</span>
+          <div class="modal-actions">
+            <span class="close" onclick="closeStockModal()">&times;</span>
+          </div>
         </div>
 
         <!-- Category Management -->
@@ -253,6 +265,7 @@
     </div>
 
     <script src="utils/data-manager.js"></script>
+    <script src="utils/auth-manager.js"></script>
     <script src="script.js"></script>
   </body>
 </html>
