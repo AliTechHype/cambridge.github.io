@@ -16,7 +16,7 @@
       <div class="nav-left">
         <div class="logo">
           <i class="fas fa-truck"></i>
-          <span>Medi-Care</span>
+          <span>Cambridge</span>
         </div>
       </div>
       <div
@@ -98,11 +98,38 @@
         </div>
         <div class="card">
           <div class="card-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+          </div>
+          <div class="card-content">
+            <h3>Total Loss</h3>
+            <p id="totalLoss">₹0</p>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-icon">
             <i class="fas fa-box"></i>
           </div>
           <div class="card-content">
             <h3>Items Sold</h3>
             <p id="itemsSold">0</p>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-icon">
+            <i class="fas fa-users"></i>
+          </div>
+          <div class="card-content">
+            <h3>Total Clients</h3>
+            <p id="totalClients">0</p>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-icon">
+            <i class="fas fa-credit-card"></i>
+          </div>
+          <div class="card-content">
+            <h3>Total Credits</h3>
+            <p id="totalCredits">₹0</p>
           </div>
         </div>
       </div>
@@ -115,11 +142,16 @@
             <thead>
               <tr>
                 <th>Date</th>
+                <th>Client Name</th>
                 <th>Category</th>
                 <th>Product</th>
+                <th>Batch No.</th>
                 <th>Quantity</th>
                 <th>Price per Unit</th>
                 <th>Total Amount</th>
+                <th>Credits</th>
+                <th>Expense</th>
+                <th>Profit/Loss</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -144,6 +176,15 @@
             <input type="date" id="saleDate" required />
           </div>
           <div class="form-group">
+            <label for="saleClientName">Client Name:</label>
+            <input
+              type="text"
+              id="saleClientName"
+              placeholder="Enter client name"
+              required
+            />
+          </div>
+          <div class="form-group">
             <label for="saleCategory">Category:</label>
             <select
               id="saleCategory"
@@ -160,12 +201,29 @@
             </select>
           </div>
           <div class="form-group">
+            <label for="saleBatchNumber">Batch Number:</label>
+            <input
+              type="text"
+              id="saleBatchNumber"
+              placeholder="Enter batch number"
+              required
+            />
+          </div>
+          <div class="form-group">
             <label for="saleQuantity">Quantity:</label>
             <input type="number" id="saleQuantity" min="1" required />
           </div>
           <div class="form-group">
             <label for="salePrice">Price per Unit:</label>
             <input type="number" id="salePrice" step="0.01" required />
+          </div>
+          <div class="form-group">
+            <label for="saleCredits">Credits:</label>
+            <input type="number" id="saleCredits" step="0.01" value="0" />
+          </div>
+          <div class="form-group">
+            <label for="saleExpense">Expense:</label>
+            <input type="number" id="saleExpense" step="0.01" value="0" />
           </div>
           <div class="form-actions">
             <button type="submit">Add Sale</button>
@@ -217,6 +275,11 @@
                   <th>Product Name</th>
                   <th>Quantity</th>
                   <th>Price per Unit</th>
+                  <th>Total Investment</th>
+                  <th>Additional Charges</th>
+                  <th>Total Cost</th>
+                  <th>Repurchase</th>
+                  <th>Batch Number</th>
                   <th>Total Value</th>
                   <th>Actions</th>
                 </tr>
@@ -255,6 +318,31 @@
           <div class="form-group">
             <label for="stockPrice">Price per Unit:</label>
             <input type="number" id="stockPrice" step="0.01" required />
+          </div>
+          <div class="form-group">
+            <label for="stockTotalInvestment">Total Investment:</label>
+            <input
+              type="number"
+              id="stockTotalInvestment"
+              step="0.01"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label for="stockAdditionalCharges">Additional Charges:</label>
+            <input
+              type="number"
+              id="stockAdditionalCharges"
+              step="0.01"
+              value="0"
+            />
+          </div>
+          <div class="form-group">
+            <label for="stockRepurchase">Repurchase (Y/N):</label>
+            <select id="stockRepurchase" required>
+              <option value="N">No</option>
+              <option value="Y">Yes</option>
+            </select>
           </div>
           <div class="form-actions">
             <button type="submit">Add Stock</button>

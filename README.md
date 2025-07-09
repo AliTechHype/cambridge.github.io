@@ -1,162 +1,148 @@
 # Distribution Management System
 
-A modern, responsive web application for managing medical distribution business with sales tracking, stock management, and profit calculation.
+A comprehensive web-based distribution management system for medical supplies and equipment tracking.
 
-## Features
+## 🚀 New Features Added
 
-### 🏠 Home Page
-- **Navigation Bar**: Clean navbar with MediDist logo and Stock Management button
-- **Month Selector**: Dropdown to switch between months and view sales data
-- **Add Sale Button**: Quick access to add new sales entries
-- **Summary Cards**: Real-time display of total sales, profit, and items sold
-- **Sales Table**: Detailed view of all sales for the selected month
+### Sales Data Enhancements
+- **Client Name**: Track which client made each purchase
+- **Batch Number**: Track specific batch numbers for inventory management
+- **Credits**: Record any credits given to clients
+- **Expense**: Track additional expenses related to each sale
+- **Profit/Loss Calculation**: Automatic calculation showing profit or loss for each sale
 
-### 📊 Sales Management
-- Add new sales with date, category, product, quantity, and price
-- View sales data filtered by month and year
-- Edit and delete existing sales records
-- Automatic calculation of total amounts
-- Profit/loss calculation based on stock costs
+### Stock Data Enhancements
+- **Total Investment**: The total amount invested in purchasing the stock
+- **Additional Charges**: Any extra costs (transportation, handling, etc.)
+- **Repurchase Field**: Track if the stock is a repurchase (Y/N)
+- **Total Cost Calculation**: Investment + Additional Charges = Total Cost
 
-### 📦 Stock Management
-- **Category Management**: Add and remove product categories
-- **Stock Items**: Add, edit, and delete stock items
-- **Inventory Tracking**: Monitor quantities and total values
-- **Cost Tracking**: Track purchase prices for profit calculation
+## 💰 Business Logic Implementation
 
-### 💰 Financial Tracking
-- Real-time profit/loss calculation
-- Monthly sales summaries
-- Stock value tracking
-- Cost vs. selling price analysis
-
-## Getting Started
-
-### Prerequisites
-- Modern web browser (Chrome, Firefox, Safari, Edge)
-- No server required - runs entirely in the browser
-
-### Installation
-1. Download or clone the project files
-2. Open `index.html` in your web browser
-3. The application will load with sample data
-
-### Data Storage
-- All data is stored locally in your browser using localStorage
-- Data persists between browser sessions
-- Export/import functionality available for data backup
-
-## Usage Guide
-
-### Adding a Sale
-1. Click the "Add Sale" button on the home page
-2. Fill in the sale details:
-   - Date of sale
-   - Product category
-   - Product name
-   - Quantity sold
-   - Price per unit
-3. Click "Add Sale" to save
-
-### Managing Stock
-1. Click the "Stock Management" button in the top-right
-2. **Adding Categories**:
-   - Enter category name in the input field
-   - Click "Add Category"
-3. **Adding Stock Items**:
-   - Click "Add Stock Item"
-   - Fill in category, product name, quantity, and cost price
-   - Click "Add Stock"
-
-### Switching Months
-- Use the month dropdown on the home page
-- Sales data will automatically filter to show the selected month
-- Summary cards update to reflect the selected month's data
-
-### Data Management
-- **Edit**: Click the edit button (pencil icon) next to any record
-- **Delete**: Click the delete button (trash icon) to remove records
-- **Export**: Use browser developer tools to export localStorage data
-- **Import**: Replace localStorage data to import previous backups
-
-## File Structure
+### Profit/Loss Calculation
+The system now calculates profit/loss using the following formula:
 
 ```
-distribution-management-system/
-├── index.html          # Main HTML file
-├── styles.css          # CSS styles and responsive design
-├── script.js           # JavaScript functionality
-├── data/
-│   └── sample-data.json # Sample data structure
-└── README.md           # This file
+Profit/Loss = (Selling Price - Total Cost Per Unit) × Quantity - Credits + Expenses
 ```
 
-## Data Structure
+Where:
+- **Total Cost Per Unit** = (Total Investment + Additional Charges) ÷ Quantity
+- **Credits**: Amount given as credit to client (reduces profit)
+- **Expenses**: Additional costs incurred (increases loss)
 
-### Sales Data
-```json
+### Example Scenario
+1. **Stock Purchase**: 20 cartons with ₹100 investment + ₹40 additional charges = ₹140 total cost
+2. **Sale**: Sell at ₹180 per unit
+3. **Calculation**: 
+   - Total Cost Per Unit = ₹140 ÷ 20 = ₹7 per unit
+   - Profit = (₹180 - ₹7) × 20 = ₹3,460 profit
+   - If credits = ₹100 and expenses = ₹50
+   - Final Profit = ₹3,460 - ₹100 + ₹50 = ₹3,410
+
+### Repurchase Handling
+- **Repurchase = "Y"**: Indicates this is a repurchase, may affect pricing strategy
+- **Repurchase = "N"**: Initial purchase, standard pricing applies
+
+## 📊 Dashboard Statistics
+
+### Summary Cards
+1. **Total Sales**: Sum of all sale amounts
+2. **Total Profit**: Sum of all profitable sales
+3. **Total Loss**: Sum of all loss-making sales (displayed prominently)
+4. **Items Sold**: Total quantity sold
+5. **Total Clients**: Unique client count
+6. **Total Credits**: Sum of all credits given
+
+### Visual Indicators
+- 📈 Green color for profits
+- 📉 Red color for losses
+- 🔄 Icon for repurchase items
+- 🔴🟡🟢 Stock level indicators
+
+## 🎯 Key Benefits
+
+1. **Accurate Profit Tracking**: Real-time profit/loss calculation for each sale
+2. **Client Management**: Track sales by client for better relationship management
+3. **Batch Tracking**: Maintain quality control with batch number tracking
+4. **Expense Management**: Include all costs in profit calculations
+5. **Repurchase Strategy**: Identify repurchase patterns for better pricing
+6. **Loss Prevention**: Clear visibility of loss-making transactions
+
+## 🔧 Technical Implementation
+
+### Data Structure
+```javascript
+// Sales Data
 {
-  "id": 1,
-  "date": "2024-01-15",
-  "category": "Drips",
-  "product": "Normal Saline",
-  "quantity": 50,
-  "pricePerUnit": 25.00,
-  "totalAmount": 1250.00,
-  "month": 1,
-  "year": 2024
+  id: number,
+  date: string,
+  clientName: string,
+  category: string,
+  product: string,
+  batchNumber: string,
+  quantity: number,
+  pricePerUnit: number,
+  totalAmount: number,
+  credits: number,
+  expense: number,
+  month: number,
+  year: number
+}
+
+// Stock Data
+{
+  id: number,
+  category: string,
+  product: string,
+  quantity: number,
+  pricePerUnit: number,
+  totalInvestment: number,
+  additionalCharges: number,
+  repurchase: "Y" | "N",
+  totalValue: number
 }
 ```
 
-### Stock Data
-```json
-{
-  "id": 1,
-  "category": "Drips",
-  "product": "Normal Saline",
-  "quantity": 200,
-  "pricePerUnit": 20.00,
-  "totalValue": 4000.00
-}
-```
+### Calculation Functions
+- `calculateSaleProfitLoss(sale)`: Calculate profit/loss for individual sale
+- `calculateProfit(sales)`: Sum all profits
+- `calculateLoss(sales)`: Sum all losses
 
-## Sample Categories
-The system comes pre-loaded with these medical distribution categories:
-- **Drips**: IV fluids and solutions
-- **Medicines**: Pharmaceutical products
-- **Equipment**: Medical supplies and equipment
+## 📱 User Interface
 
-## Browser Compatibility
-- Chrome 60+
-- Firefox 55+
-- Safari 12+
-- Edge 79+
+### Sales Table
+- Displays all new fields with proper formatting
+- Color-coded profit/loss indicators
+- Batch number tracking
+- Client information
 
-## Local Storage
-The application uses browser localStorage for data persistence:
-- `salesData`: Array of all sales records
-- `stockData`: Array of all stock items
-- `categories`: Array of product categories
+### Stock Table
+- Total investment and additional charges columns
+- Repurchase indicator with icon
+- Total cost calculation
+- Stock level warnings
 
-## Customization
-- Modify `styles.css` to change the appearance
-- Update `script.js` to add new features
-- Edit sample data in `data/sample-data.json` for different initial data
+### Summary Dashboard
+- 6 comprehensive summary cards
+- Real-time statistics
+- Visual indicators for quick insights
 
-## Support
-For issues or questions:
-1. Check browser console for error messages
-2. Clear browser localStorage if data becomes corrupted
-3. Ensure JavaScript is enabled in your browser
+## 🚀 Getting Started
 
-## Future Enhancements
-- Multi-year data support
-- Advanced reporting and analytics
-- Customer management
-- Supplier tracking
-- Barcode scanning integration
-- Mobile app version
+1. Open `index.html` in your browser
+2. Add categories in Stock Management
+3. Add stock items with investment details
+4. Record sales with client information
+5. Monitor profits/losses in real-time
 
----
+## 📈 Business Insights
 
-**Note**: This is a frontend-only application. For production use with multiple users, consider adding a backend server and database. 
+The system now provides:
+- **Profit Margin Analysis**: See which products are most profitable
+- **Client Profitability**: Track which clients generate most profit
+- **Loss Identification**: Quickly identify loss-making transactions
+- **Repurchase Patterns**: Understand repurchase impact on profits
+- **Expense Tracking**: Include all costs in profit calculations
+
+This enhanced system ensures accurate financial tracking and better business decision-making for your distribution business. 

@@ -98,7 +98,7 @@ function updateSalesTable() {
   if (filteredSales.length === 0) {
     const row = document.createElement("tr");
     row.innerHTML = `
-      <td colspan="7" style="text-align: center; padding: 2rem; color: #666;">
+      <td colspan="12" style="text-align: center; padding: 2rem; color: #666;">
         <div style="margin-bottom: 1rem;">
           <i class="fas fa-chart-line" style="font-size: 3rem; color: #ddd; margin-bottom: 1rem;"></i>
         </div>
@@ -116,14 +116,26 @@ function updateSalesTable() {
   }
 
   filteredSales.forEach((sale) => {
+    // Calculate profit/loss for this sale
+    const profitLoss = calculateSaleProfitLoss(sale);
+    const profitLossClass = profitLoss >= 0 ? "profit" : "loss";
+    const profitLossIcon = profitLoss >= 0 ? "📈" : "📉";
+
     const row = document.createElement("tr");
     row.innerHTML = `
             <td>${formatDate(sale.date)}</td>
+            <td>${sale.clientName || "N/A"}</td>
             <td>${sale.category}</td>
             <td>${sale.product}</td>
+            <td>${sale.batchNumber || "N/A"}</td>
             <td>${sale.quantity}</td>
             <td>₨${sale.pricePerUnit.toFixed(2)}</td>
             <td>₨${sale.totalAmount.toFixed(2)}</td>
+            <td>₨${(sale.credits || 0).toFixed(2)}</td>
+            <td>₨${(sale.expense || 0).toFixed(2)}</td>
+            <td class="${profitLossClass}">${profitLossIcon} ₨${Math.abs(
+      profitLoss
+    ).toFixed(2)}</td>
             <td>
                 <div class="action-buttons">
                     <button class="btn-edit" onclick="editSale(${sale.id})">
@@ -150,7 +162,14 @@ function updateSummaryCards() {
     0
   );
   const totalProfit = calculateProfit(filteredSales);
+  const totalLoss = calculateLoss(filteredSales);
   const itemsSold = filteredSales.reduce((sum, sale) => sum + sale.quantity, 0);
+  const totalClients = new Set(filteredSales.map((sale) => sale.clientName))
+    .size;
+  const totalCredits = filteredSales.reduce(
+    (sum, sale) => sum + (sale.credits || 0),
+    0
+  );
 
   document.getElementById("totalSales").textContent = `₨${totalSales.toFixed(
     2
@@ -158,7 +177,12 @@ function updateSummaryCards() {
   document.getElementById("totalProfit").textContent = `₨${totalProfit.toFixed(
     2
   )}`;
+  document.getElementById("totalLoss").textContent = `₨${totalLoss.toFixed(2)}`;
   document.getElementById("itemsSold").textContent = itemsSold;
+  document.getElementById("totalClients").textContent = totalClients;
+  document.getElementById(
+    "totalCredits"
+  ).textContent = `₨${totalCredits.toFixed(2)}`;
 }
 
 // Calculate profit
@@ -166,19 +190,60 @@ function calculateProfit(sales) {
   let totalProfit = 0;
 
   sales.forEach((sale) => {
-    const stockItem = stockData.find(
-      (item) => item.category === sale.category && item.product === sale.product
-    );
-
-    if (stockItem) {
-      const costPrice = stockItem.pricePerUnit;
-      const sellingPrice = sale.pricePerUnit;
-      const profit = (sellingPrice - costPrice) * sale.quantity;
-      totalProfit += profit;
+    const profitLoss = calculateSaleProfitLoss(sale);
+    if (profitLoss > 0) {
+      totalProfit += profitLoss;
     }
   });
 
   return totalProfit;
+}
+
+// Calculate loss
+function calculateLoss(sales) {
+  let totalLoss = 0;
+
+  sales.forEach((sale) => {
+    const profitLoss = calculateSaleProfitLoss(sale);
+    if (profitLoss < 0) {
+      totalLoss += Math.abs(profitLoss);
+    }
+  });
+
+  return totalLoss;
+}
+
+// Calculate profit/loss for a single sale
+function calculateSaleProfitLoss(sale) {
+  const stockItems = stockData.filter(
+    (item) => item.category === sale.category && item.product === sale.product
+  );
+
+  if (stockItems.length > 0) {
+    // Calculate weighted average cost across all purchases (including repurchases)
+    let totalInvestment = 0;
+    let totalAdditionalCharges = 0;
+    let totalQuantity = 0;
+
+    stockItems.forEach((item) => {
+      totalInvestment += item.totalInvestment || 0;
+      totalAdditionalCharges += item.additionalCharges || 0;
+      totalQuantity += item.quantity;
+    });
+
+    // Calculate weighted average cost per unit
+    const weightedAverageCostPerUnit =
+      (totalInvestment + totalAdditionalCharges) / totalQuantity;
+
+    const sellingPrice = sale.pricePerUnit;
+    const profitLoss =
+      (sellingPrice - weightedAverageCostPerUnit) * sale.quantity;
+
+    // Subtract credits and add expenses
+    return profitLoss - (sale.credits || 0) + (sale.expense || 0);
+  }
+
+  return 0;
 }
 
 // Update category options
@@ -203,7 +268,7 @@ function updateStockTable() {
   if (stockData.length === 0) {
     const row = document.createElement("tr");
     row.innerHTML = `
-      <td colspan="6" style="text-align: center; padding: 2rem; color: #666;">
+      <td colspan="11" style="text-align: center; padding: 2rem; color: #666;">
         <div style="margin-bottom: 1rem;">
           <i class="fas fa-boxes" style="font-size: 3rem; color: #ddd; margin-bottom: 1rem;"></i>
         </div>
@@ -229,11 +294,24 @@ function updateStockTable() {
     const stockIcon =
       item.quantity <= 10 ? "🔴" : item.quantity <= 50 ? "🟡" : "🟢";
 
+    // Calculate total cost per unit
+    const totalCostPerUnit =
+      (item.totalInvestment + (item.additionalCharges || 0)) / item.quantity;
+    const totalCost = totalCostPerUnit * item.quantity;
+    const repurchaseIcon = item.repurchase === "Y" ? "🔄" : "";
+    const repurchaseText =
+      item.repurchase === "Y" ? `#${item.repurchaseCount || 1}` : "Initial";
+
     row.innerHTML = `
             <td>${item.category}</td>
             <td>${item.product}</td>
             <td class="${stockClass}">${stockIcon} ${item.quantity}</td>
             <td>₨${item.pricePerUnit.toFixed(2)}</td>
+            <td>₨${(item.totalInvestment || 0).toFixed(2)}</td>
+            <td>₨${(item.additionalCharges || 0).toFixed(2)}</td>
+            <td>₨${totalCost.toFixed(2)}</td>
+            <td>${repurchaseIcon} ${repurchaseText}</td>
+            <td>${item.batchNumber || "N/A"}</td>
             <td>₨${item.totalValue.toFixed(2)}</td>
             <td>
                 <div class="action-buttons">
@@ -322,12 +400,17 @@ function openSaleModal(saleId = null) {
     if (sale) {
       modalTitle.textContent = "Edit Sale";
       document.getElementById("saleDate").value = sale.date;
+      document.getElementById("saleClientName").value = sale.clientName || "";
       document.getElementById("saleCategory").value = sale.category;
       updateProductOptions();
-      document.getElementById("saleProduct").value = sale.product;
+      setTimeout(() => {
+        document.getElementById("saleProduct").value = sale.product;
+      }, 100);
+      document.getElementById("saleBatchNumber").value = sale.batchNumber || "";
       document.getElementById("saleQuantity").value = sale.quantity;
       document.getElementById("salePrice").value = sale.pricePerUnit;
-      showStockDetails();
+      document.getElementById("saleCredits").value = sale.credits || 0;
+      document.getElementById("saleExpense").value = sale.expense || 0;
     }
   } else {
     // Adding new sale
@@ -380,11 +463,37 @@ function openAddStockForm(stockId = null) {
       document.getElementById("stockProduct").value = stock.product;
       document.getElementById("stockQuantity").value = stock.quantity;
       document.getElementById("stockPrice").value = stock.pricePerUnit;
+      document.getElementById("stockTotalInvestment").value =
+        stock.totalInvestment || 0;
+      document.getElementById("stockAdditionalCharges").value =
+        stock.additionalCharges || 0;
+      document.getElementById("stockRepurchase").value =
+        stock.repurchase || "N";
+
+      // Show repurchase info if editing
+      if (stock.repurchase === "Y") {
+        const repurchaseInfo = document.createElement("div");
+        repurchaseInfo.className = "repurchase-info";
+        repurchaseInfo.innerHTML = `
+          <p style="color: #667eea; font-size: 0.9rem; margin: 0.5rem 0;">
+            🔄 This is Repurchase #${stock.repurchaseCount || 1} for ${
+          stock.product
+        }
+          </p>
+        `;
+        form.insertBefore(repurchaseInfo, form.firstChild);
+      }
     }
   } else {
     // Adding new stock
     modalTitle.textContent = "Add Stock Item";
     form.reset();
+
+    // Remove any existing repurchase info
+    const existingInfo = form.querySelector(".repurchase-info");
+    if (existingInfo) {
+      existingInfo.remove();
+    }
   }
 
   modal.style.display = "block";
@@ -401,10 +510,14 @@ function closeAddStockModal() {
 function addSale() {
   const formData = {
     date: document.getElementById("saleDate").value,
+    clientName: document.getElementById("saleClientName").value,
     category: document.getElementById("saleCategory").value,
     product: document.getElementById("saleProduct").value,
+    batchNumber: document.getElementById("saleBatchNumber").value,
     quantity: parseInt(document.getElementById("saleQuantity").value),
     pricePerUnit: parseFloat(document.getElementById("salePrice").value),
+    credits: parseFloat(document.getElementById("saleCredits").value) || 0,
+    expense: parseFloat(document.getElementById("saleExpense").value) || 0,
   };
 
   if (editingSaleId) {
@@ -538,6 +651,14 @@ function addStock() {
     product: document.getElementById("stockProduct").value,
     quantity: parseInt(document.getElementById("stockQuantity").value),
     pricePerUnit: parseFloat(document.getElementById("stockPrice").value),
+    totalInvestment: parseFloat(
+      document.getElementById("stockTotalInvestment").value
+    ),
+    additionalCharges:
+      parseFloat(document.getElementById("stockAdditionalCharges").value) || 0,
+    repurchase: document.getElementById("stockRepurchase").value,
+    batchNumber: generateBatchNumber(),
+    purchaseDate: new Date().toISOString().split("T")[0],
   };
 
   if (editingStockId) {
@@ -564,14 +685,38 @@ function addStock() {
       id: Date.now(),
       ...formData,
       totalValue: formData.quantity * formData.pricePerUnit,
+      repurchaseCount: calculateRepurchaseCount(
+        formData.category,
+        formData.product
+      ),
     };
 
     stockData.push(stock);
     saveData();
     updateDisplay();
     closeAddStockModal();
-    alert("Stock item added successfully!");
+
+    const repurchaseText =
+      formData.repurchase === "Y"
+        ? ` (Repurchase #${stock.repurchaseCount})`
+        : "";
+    alert(`Stock item added successfully!${repurchaseText}`);
   }
+}
+
+// Generate unique batch number
+function generateBatchNumber() {
+  const timestamp = Date.now();
+  const random = Math.floor(Math.random() * 1000);
+  return `B${timestamp}${random}`;
+}
+
+// Calculate repurchase count for a product
+function calculateRepurchaseCount(category, product) {
+  const existingStocks = stockData.filter(
+    (item) => item.category === category && item.product === product
+  );
+  return existingStocks.length + 1;
 }
 
 // Add category
@@ -791,7 +936,7 @@ function showWelcomeMessage() {
     <div style="margin-bottom: 1.5rem;">
       <i class="fas fa-truck" style="font-size: 4rem; margin-bottom: 1rem;"></i>
     </div>
-    <h2 style="margin-bottom: 1rem; font-size: 1.8rem;">Welcome to Medi-Care!</h2>
+    <h2 style="margin-bottom: 1rem; font-size: 1.8rem;">Welcome to Cambridge!</h2>
     <p style="margin-bottom: 1.5rem; font-size: 1.1rem; opacity: 0.9;">
       Your complete distribution management solution
     </p>
