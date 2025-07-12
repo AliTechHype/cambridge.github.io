@@ -338,7 +338,10 @@ function calculateSaleProfitLoss(sale) {
 
     // If there's only one stock item, use the original purchase price
     if (stockItems.length === 1) {
-      weightedAverageCostPerUnit = stockItems[0].pricePerUnit;
+      weightedAverageCostPerUnit =
+        stockItems[0].pricePerUnit +
+        (stockItems[0].additionalCharges / stockItems[0].totalInvestment) *
+          stockItems[0].pricePerUnit;
       console.log("=== COST CALCULATION (SINGLE STOCK ITEM) ===");
       console.log(
         "Using original purchase price per unit:",
@@ -387,11 +390,11 @@ function calculateSaleProfitLoss(sale) {
       `Formula: ${sellingPrice} × ${sale.quantity} = ${revenueForThisSale}`
     );
 
-    // Calculate profit/loss: Revenue - Cost - Credits + Expenses
+    // Calculate profit/loss: Revenue - Cost - Credits - Expenses
     const profitLoss =
       revenueForThisSale -
       costForThisSale -
-      (sale.credits || 0) +
+      (sale.credits || 0) -
       (sale.expense || 0);
 
     console.log("=== PROFIT/LOSS CALCULATION ===");
@@ -399,11 +402,11 @@ function calculateSaleProfitLoss(sale) {
     console.log("Cost:", costForThisSale);
     console.log("Credits:", sale.credits || 0);
     console.log("Expenses:", sale.expense || 0);
-    console.log("Profit/Loss Formula: Revenue - Cost - Credits + Expenses");
+    console.log("Profit/Loss Formula: Revenue - Cost - Credits - Expenses");
     console.log(
       `Profit/Loss Formula: ${revenueForThisSale} - ${costForThisSale} - ${
         sale.credits || 0
-      } + ${sale.expense || 0} = ${profitLoss}`
+      } - ${sale.expense || 0} = ${profitLoss}`
     );
 
     // Test calculation for your specific example
