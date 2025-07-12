@@ -132,6 +132,24 @@
             <p id="totalCredits">₹0</p>
           </div>
         </div>
+        <div class="card clickable-card" onclick="openClientReceivablesModal()">
+          <div class="card-icon">
+            <i class="fas fa-hand-holding-usd"></i>
+          </div>
+          <div class="card-content">
+            <h3>Receivables</h3>
+            <p id="totalReceivables">₹0</p>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-icon">
+            <i class="fas fa-calendar-alt"></i>
+          </div>
+          <div class="card-content">
+            <h3>Yearly Sales</h3>
+            <p id="yearlySales">₹0</p>
+          </div>
+        </div>
       </div>
 
       <!-- Sales Table -->
@@ -142,6 +160,7 @@
             <thead>
               <tr>
                 <th>Date</th>
+                <th>Invoice No.</th>
                 <th>Client Name</th>
                 <th>Category</th>
                 <th>Product</th>
@@ -176,13 +195,28 @@
             <input type="date" id="saleDate" required />
           </div>
           <div class="form-group">
-            <label for="saleClientName">Client Name:</label>
+            <label for="saleInvoiceNumber">Invoice Number:</label>
             <input
               type="text"
-              id="saleClientName"
-              placeholder="Enter client name"
+              id="saleInvoiceNumber"
+              placeholder="Enter invoice number"
               required
             />
+          </div>
+          <div class="form-group">
+            <label for="saleClientName">Client Name:</label>
+            <div class="client-input-group">
+              <select id="saleClientDropdown" onchange="selectClient()">
+                <option value="">Select existing client</option>
+              </select>
+              <input
+                type="text"
+                id="saleClientName"
+                placeholder="Or type new client name"
+                required
+                oninput="updateClientInput()"
+              />
+            </div>
           </div>
           <div class="form-group">
             <label for="saleCategory">Category:</label>
@@ -196,26 +230,45 @@
           </div>
           <div class="form-group">
             <label for="saleProduct">Product:</label>
-            <select id="saleProduct" required>
+            <select id="saleProduct" required onchange="updateBatchOptions()">
               <option value="">Select Product</option>
             </select>
           </div>
           <div class="form-group">
             <label for="saleBatchNumber">Batch Number:</label>
+            <select id="saleBatchDropdown" onchange="selectBatch()">
+              <option value="">Select batch number</option>
+            </select>
             <input
               type="text"
               id="saleBatchNumber"
-              placeholder="Enter batch number"
+              placeholder="Or enter batch number manually"
               required
             />
           </div>
           <div class="form-group">
             <label for="saleQuantity">Quantity:</label>
-            <input type="number" id="saleQuantity" min="1" required />
+            <input
+              type="number"
+              id="saleQuantity"
+              min="1"
+              required
+              oninput="calculateTotalAmount()"
+            />
           </div>
           <div class="form-group">
             <label for="salePrice">Price per Unit:</label>
-            <input type="number" id="salePrice" step="0.01" required />
+            <input
+              type="number"
+              id="salePrice"
+              step="0.01"
+              required
+              oninput="calculateTotalAmount()"
+            />
+          </div>
+          <div class="form-group">
+            <label for="saleTotalAmount">Total Amount:</label>
+            <input type="number" id="saleTotalAmount" step="0.01" readonly />
           </div>
           <div class="form-group">
             <label for="saleCredits">Credits:</label>
@@ -278,8 +331,8 @@
                   <th>Total Investment</th>
                   <th>Additional Charges</th>
                   <th>Total Cost</th>
-                  <th>Repurchase</th>
                   <th>Batch Number</th>
+                  <th>Repurchase</th>
                   <th>Total Value</th>
                   <th>Actions</th>
                 </tr>
@@ -313,11 +366,23 @@
           </div>
           <div class="form-group">
             <label for="stockQuantity">Quantity:</label>
-            <input type="number" id="stockQuantity" min="0" required />
+            <input
+              type="number"
+              id="stockQuantity"
+              min="0"
+              required
+              oninput="calculateStockTotalInvestment()"
+            />
           </div>
           <div class="form-group">
             <label for="stockPrice">Price per Unit:</label>
-            <input type="number" id="stockPrice" step="0.01" required />
+            <input
+              type="number"
+              id="stockPrice"
+              step="0.01"
+              required
+              oninput="calculateStockTotalInvestment()"
+            />
           </div>
           <div class="form-group">
             <label for="stockTotalInvestment">Total Investment:</label>
@@ -326,6 +391,7 @@
               id="stockTotalInvestment"
               step="0.01"
               required
+              readonly
             />
           </div>
           <div class="form-group">
@@ -335,6 +401,15 @@
               id="stockAdditionalCharges"
               step="0.01"
               value="0"
+            />
+          </div>
+          <div class="form-group">
+            <label for="stockBatchNumber">Batch Number:</label>
+            <input
+              type="text"
+              id="stockBatchNumber"
+              placeholder="Enter batch number"
+              required
             />
           </div>
           <div class="form-group">
@@ -355,5 +430,101 @@
     <script src="utils/data-manager.js"></script>
     <script src="utils/auth-manager.js"></script>
     <script src="script.js"></script>
+
+    <!-- Client Receivables Modal -->
+    <div id="clientReceivablesModal" class="modal">
+      <div class="modal-content large">
+        <div class="modal-header">
+          <h2>Receivables</h2>
+          <span class="close" onclick="closeClientReceivablesModal()"
+            >&times;</span
+          >
+        </div>
+        <div class="receivables-content">
+          <div class="receivables-summary">
+            <div class="summary-item">
+              <span class="label">Total Receivables:</span>
+              <span class="value" id="modalTotalReceivables">₹0</span>
+            </div>
+            <div class="summary-item">
+              <span class="label">Total Clients:</span>
+              <span class="value" id="modalTotalClients">0</span>
+            </div>
+          </div>
+          <div class="table-wrapper">
+            <table id="receivablesTable">
+              <thead>
+                <tr>
+                  <th>Client Name</th>
+                  <th>Total Sales</th>
+                  <th>Total Credits</th>
+                  <th>Receivables</th>
+                  <th>Last Sale Date</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="receivablesTableBody">
+                <!-- Receivables data will be populated here -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit Client Credits Modal -->
+    <div id="editCreditsModal" class="modal">
+      <div class="modal-content large">
+        <div class="modal-header">
+          <h2>Edit Credits for <span id="editCreditsClientName"></span></h2>
+          <span class="close" onclick="closeEditCreditsModal()">&times;</span>
+        </div>
+        <div class="edit-credits-content">
+          <div class="client-summary">
+            <div class="summary-item">
+              <span class="label">Total Sales:</span>
+              <span class="value" id="editCreditsTotalSales">₹0</span>
+            </div>
+            <div class="summary-item">
+              <span class="label">Current Credits:</span>
+              <span class="value" id="editCreditsCurrentCredits">₹0</span>
+            </div>
+            <div class="summary-item">
+              <span class="label">Receivables:</span>
+              <span class="value" id="editCreditsReceivables">₹0</span>
+            </div>
+          </div>
+          <div class="table-wrapper">
+            <table id="editCreditsTable">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Invoice No.</th>
+                  <th>Product</th>
+                  <th>Total Amount</th>
+                  <th>Current Credits</th>
+                  <th>New Credits</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="editCreditsTableBody">
+                <!-- Client sales with credits will be populated here -->
+              </tbody>
+            </table>
+          </div>
+          <div class="edit-credits-actions">
+            <button onclick="markAllAsPaid()" class="btn-mark-all">
+              Mark All as Paid
+            </button>
+            <button onclick="saveCreditsChanges()" class="btn-save">
+              Save Changes
+            </button>
+            <button onclick="closeEditCreditsModal()" class="btn-cancel">
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </body>
 </html>
