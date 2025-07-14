@@ -251,10 +251,60 @@ body {
   overflow-x: auto;
 }
 
-.table-container h2 {
+.table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.table-header h2 {
   color: #333;
   font-size: 1.5rem;
+  margin: 0;
+}
+
+.search-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  position: relative;
+}
+
+#salesSearchInput {
+  padding: 0.75rem 1rem;
+  border: 2px solid #e1e5e9;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  width: 300px;
+  transition: border-color 0.3s ease;
+}
+
+#salesSearchInput:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.clear-search-btn {
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem;
+  cursor: pointer;
+  transition: background 0.2s;
+  display: none;
+}
+
+.clear-search-btn:hover {
+  background: #c82333;
+}
+
+.clear-search-btn.show {
+  display: block;
 }
 
 table {
@@ -653,6 +703,21 @@ form {
 
   .summary-cards {
     grid-template-columns: repeat(auto-fit, minmax(150px, 2fr));
+  }
+
+  .table-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+
+  .search-container {
+    width: 100%;
+  }
+
+  #salesSearchInput {
+    width: 100%;
+    flex: 1;
   }
 
   .modal-content {

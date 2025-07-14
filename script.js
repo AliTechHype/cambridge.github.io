@@ -91,31 +91,66 @@ function updateDisplay() {
   }
 }
 
+// Global variable to store search term
+let currentSearchTerm = "";
+
 // Update sales table
 function updateSalesTable() {
   const tableBody = document.getElementById("salesTableBody");
-  const filteredSales = salesData.filter(
+  let filteredSales = salesData.filter(
     (sale) => sale.month === currentMonth && sale.year === currentYear
   );
+
+  // Apply search filter if search term exists
+  if (currentSearchTerm.trim() !== "") {
+    const searchTerm = currentSearchTerm.toLowerCase();
+    filteredSales = filteredSales.filter((sale) => {
+      return (
+        (sale.clientName &&
+          sale.clientName.toLowerCase().includes(searchTerm)) ||
+        (sale.invoiceNumber &&
+          sale.invoiceNumber.toLowerCase().includes(searchTerm)) ||
+        (sale.category && sale.category.toLowerCase().includes(searchTerm)) ||
+        (sale.product && sale.product.toLowerCase().includes(searchTerm)) ||
+        (sale.batchNumber &&
+          sale.batchNumber.toLowerCase().includes(searchTerm))
+      );
+    });
+  }
 
   tableBody.innerHTML = "";
 
   if (filteredSales.length === 0) {
     const row = document.createElement("tr");
-    row.innerHTML = `
-      <td colspan="13" style="text-align: center; padding: 2rem; color: #666;">
-        <div style="margin-bottom: 1rem;">
-          <i class="fas fa-chart-line" style="font-size: 3rem; color: #ddd; margin-bottom: 1rem;"></i>
-        </div>
-        <h3 style="margin-bottom: 0.5rem; color: #333;">No Sales Data Found</h3>
-        <p style="margin-bottom: 1rem;">No sales recorded for ${getMonthName(
-          currentMonth
-        )} ${currentYear}</p>
-        <button onclick="openSaleModal()" style="background: #667eea; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 8px; cursor: pointer;">
-          <i class="fas fa-plus"></i> Add Your First Sale
-        </button>
-      </td>
-    `;
+    if (currentSearchTerm.trim() !== "") {
+      row.innerHTML = `
+        <td colspan="13" style="text-align: center; padding: 2rem; color: #666;">
+          <div style="margin-bottom: 1rem;">
+            <i class="fas fa-search" style="font-size: 3rem; color: #ddd; margin-bottom: 1rem;"></i>
+          </div>
+          <h3 style="margin-bottom: 0.5rem; color: #333;">No Results Found</h3>
+          <p style="margin-bottom: 1rem;">No sales match your search: "${currentSearchTerm}"</p>
+          <button onclick="clearSearch()" style="background: #667eea; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 8px; cursor: pointer;">
+            <i class="fas fa-times"></i> Clear Search
+          </button>
+        </td>
+      `;
+    } else {
+      row.innerHTML = `
+        <td colspan="13" style="text-align: center; padding: 2rem; color: #666;">
+          <div style="margin-bottom: 1rem;">
+            <i class="fas fa-chart-line" style="font-size: 3rem; color: #ddd; margin-bottom: 1rem;"></i>
+          </div>
+          <h3 style="margin-bottom: 0.5rem; color: #333;">No Sales Data Found</h3>
+          <p style="margin-bottom: 1rem;">No sales recorded for ${getMonthName(
+            currentMonth
+          )} ${currentYear}</p>
+          <button onclick="openSaleModal()" style="background: #667eea; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 8px; cursor: pointer;">
+            <i class="fas fa-plus"></i> Add Your First Sale
+          </button>
+        </td>
+      `;
+    }
     tableBody.appendChild(row);
     return;
   }
@@ -553,6 +588,35 @@ function setupEventListeners() {
     .addEventListener("change", function () {
       showStockDetails();
     });
+}
+
+// Search sales function
+function searchSales() {
+  const searchInput = document.getElementById("salesSearchInput");
+  const clearBtn = document.querySelector(".clear-search-btn");
+
+  currentSearchTerm = searchInput.value;
+
+  // Show/hide clear button
+  if (currentSearchTerm.trim() !== "") {
+    clearBtn.classList.add("show");
+  } else {
+    clearBtn.classList.remove("show");
+  }
+
+  updateSalesTable();
+}
+
+// Clear search function
+function clearSearch() {
+  const searchInput = document.getElementById("salesSearchInput");
+  const clearBtn = document.querySelector(".clear-search-btn");
+
+  searchInput.value = "";
+  currentSearchTerm = "";
+  clearBtn.classList.remove("show");
+
+  updateSalesTable();
 }
 
 // Change month
